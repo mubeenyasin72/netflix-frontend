@@ -1,9 +1,40 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import './listItem.scss'
 import { PlayArrow, Add, ThumbUpAltOutlined, ThumbDownOutlined } from "@material-ui/icons"
-const ListItem = ({ index }) => {
+import { BASE_URL } from '../../baseUrl/BaseUrl'
+const ListItem = ({ index, item }) => {
     const [isHovered, setIsHovered] = useState(false)
+    const [movies, setMovies] = useState({})
     const trailer = "https://player.vimeo.com/external/371433846.sd.mp4?s=236da2f3c0fd273d2c6d9a064f3ae35579b2bbdf&profile_id=139&oauth2_token_id=57447761";
+
+    useEffect(() => {
+        const findMovies = async () => {
+            try {
+                var myHeaders = new Headers();
+                myHeaders.append("token", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYyNGJlYmRhYTU2NDBkZGVjOTA4MDlmZSIsImlzQWRtaW4iOnRydWUsImlhdCI6MTY0OTMyMDA4NiwiZXhwIjoxNjQ5NDA2NDg2fQ.M4XgFlsOFP0Sd6NeycRanys0Idot6pMCfTo7ZnyZuo0");
+
+                var requestOptions = {
+                    method: 'GET',
+                    headers: myHeaders,
+                    redirect: 'follow'
+                };
+
+                await fetch(`${BASE_URL}/api/v1/movies/find/` + item, requestOptions)
+                    .then(response => response.json())
+                    .then(result => {
+                        console.log(result.movie, "This is the Lisytitem page result")
+                        setMovies(result.movie)
+                    })
+                    .catch(error => {
+                        console.log('error', error)
+                    });
+            } catch (error) {
+                console.log(error)
+            }
+        }
+        findMovies()
+    }, [item])
+    // console.log(movies, "rdtyfughiiouiyutyrtsdfyghjofghj")
     return (
         <div className='listitem'
             style={{ left: isHovered && index * 225 - 50 + index * 2.5 }}
@@ -11,12 +42,12 @@ const ListItem = ({ index }) => {
             onMouseLeave={() => setIsHovered(false)}
         >
             <img
-                src="https://occ-0-1723-92.1.nflxso.net/dnm/api/v6/X194eJsgWBDE2aQbaNdmCXGUP-Y/AAAABU7D36jL6KiLG1xI8Xg_cZK-hYQj1L8yRxbQuB0rcLCnAk8AhEK5EM83QI71bRHUm0qOYxonD88gaThgDaPu7NuUfRg.jpg?r=4ee"
+                src={movies?.imgSm}
                 alt=""
             />
             {isHovered && (
                 <>
-                    <video src={trailer} autoPlay={true} loop />
+                    <video src={movies.trailer} autoPlay={true} loop />
                     <div className="itemInfo">
                         <div className="icons">
                             <PlayArrow className="icon" />
@@ -25,15 +56,14 @@ const ListItem = ({ index }) => {
                             <ThumbDownOutlined className="icon" />
                         </div>
                         <div className="itemInfoTop">
-                            <span>1 hour 14 mins</span>
-                            <span className="limit">+16</span>
-                            <span>1999</span>
+                            <span>{item.duration}</span>
+                            <span className="limit">+{movies.limit}</span>
+                            <span>{movies.year}</span>
                         </div>
                         <div className="desc">
-                            Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-                            Praesentium hic rem eveniet error possimus, neque ex doloribus.
+                            {movies.desc}
                         </div>
-                        <div className="genre">Action</div>
+                        <div className="genre">{movies.genre}</div>
                     </div>
                 </>
             )}
